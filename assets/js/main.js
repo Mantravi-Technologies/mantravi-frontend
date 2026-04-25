@@ -832,9 +832,17 @@ async function handleConsultForm(event) {
     submitButton.disabled = true;
     
     try {
-        // Use reusable API service
+        // Use reusable API service + independent Web3Forms backup route
         const apiService = new ApiService();
-        const result = await apiService.submitConsultation(data);
+        const submitResults = await Promise.allSettled([
+            apiService.submitConsultation(data),
+            apiService.submitContactWeb3Form(data)
+        ]);
+        const web3Result = submitResults[1];
+        if (web3Result.status === 'rejected') {
+            console.warn('Contact Web3Forms submission failed:', web3Result.reason);
+            showNotification('Request saved, but email delivery via Web3Forms failed. Please verify Web3Forms key recipient.', 'error');
+        }
         
         // Hide form and show success message
         const form = document.getElementById('consultForm');
@@ -921,9 +929,17 @@ async function handleJobApplicationForm(event) {
     submitButton.disabled = true;
     
     try {
-        // Use reusable API service
+        // Use reusable API service + independent Web3Forms backup route
         const apiService = new ApiService();
-        const result = await apiService.submitJobApplication(data);
+        const submitResults = await Promise.allSettled([
+            apiService.submitJobApplication(data),
+            apiService.submitWorkWithUsWeb3Form(data)
+        ]);
+        const web3Result = submitResults[1];
+        if (web3Result.status === 'rejected') {
+            console.warn('Work-with-us Web3Forms submission failed:', web3Result.reason);
+            showNotification('Application saved, but email delivery via Web3Forms failed. Please verify Web3Forms key recipient.', 'error');
+        }
         
         // Hide form and show success message
         const form = document.getElementById('applicationForm');

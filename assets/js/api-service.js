@@ -6,6 +6,8 @@
 class ApiService {
     constructor() {
         this.baseURL = 'https://api.mantravi.com';
+        this.web3FormsEndpoint = 'https://api.web3forms.com/submit';
+        this.web3FormsAccessKey = 'd221e3e8-44f7-4435-8e2e-7a431aeb5628';
         this.defaultHeaders = {
             'Content-Type': 'application/json'
         };
@@ -119,6 +121,41 @@ class ApiService {
     }
 
     /**
+     * Submit contact-us form to Web3Forms with dedicated subject line
+     * @param {Object} formData - Contact form data
+     * @returns {Promise<Object>} Web3Forms API response
+     */
+    async submitContactWeb3Form(formData) {
+        const payload = new FormData();
+        payload.append('access_key', this.web3FormsAccessKey);
+        payload.append('subject', 'Website Contact Us Request');
+        payload.append('from_name', formData.name || 'Website Visitor');
+        payload.append('replyto', formData.email || '');
+        payload.append('name', formData.name || '');
+        payload.append('email', formData.email || '');
+        payload.append('phone', formData.phone || '');
+        payload.append('company', formData.company || '');
+        payload.append('service', formData.service || '');
+        payload.append('message', formData.message || '');
+        payload.append('form_type', 'contact-us');
+
+        const response = await fetch(this.web3FormsEndpoint, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json'
+            },
+            body: payload
+        });
+
+        const result = await response.json();
+        if (!response.ok || result.success === false) {
+            throw new Error(result.message || 'Web3Forms contact submission failed');
+        }
+
+        return result;
+    }
+
+    /**
      * Submit contact form data (for future use)
      * @param {Object} formData - Contact form data
      * @returns {Promise<Object>} API response
@@ -173,6 +210,44 @@ class ApiService {
         
         // Use FormData instead of JSON for file upload
         return await this.postFormData('/api/work-with-us', formDataToSend);
+    }
+
+    /**
+     * Submit work-with-us form to Web3Forms with dedicated subject line
+     * @param {Object} formData - Job application form data
+     * @returns {Promise<Object>} Web3Forms API response
+     */
+    async submitWorkWithUsWeb3Form(formData) {
+        const payload = new FormData();
+        payload.append('access_key', this.web3FormsAccessKey);
+        payload.append('subject', 'Website Work With Us Request');
+        payload.append('from_name', formData.name || 'Applicant');
+        payload.append('replyto', formData.email || '');
+        payload.append('name', formData.name || '');
+        payload.append('email', formData.email || '');
+        payload.append('phone', formData.phone || '');
+        payload.append('role', formData.role || '');
+        payload.append('message', formData.message || '');
+        payload.append('form_type', 'work-with-us');
+
+        if (formData.resume && formData.resume instanceof File) {
+            payload.append('resume', formData.resume);
+        }
+
+        const response = await fetch(this.web3FormsEndpoint, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json'
+            },
+            body: payload
+        });
+
+        const result = await response.json();
+        if (!response.ok || result.success === false) {
+            throw new Error(result.message || 'Web3Forms work-with-us submission failed');
+        }
+
+        return result;
     }
 
     /**
